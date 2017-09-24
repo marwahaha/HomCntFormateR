@@ -1,0 +1,83 @@
+ ---
+title: "Monthly Homicide Counts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(dplyr)
+```
+
+## Background Population Data
+
+Yearly population estimates and monthly interpolations for all places from the 2010 US census have been prepared and are available at <http://cims.nyu.edu/~tlaetsch/2010_interp_pop.csv>.
+
+## Set up the formateR
+
+```{r source, include = T}
+source('MonthlyHomCnts.R')
+```
+
+### Example with San Antonio, TX
+
+The current homicide count file for San Antonio looks as follows.
+```{r SanAntonio.Unclean, include = T}
+sadf <- read.csv( 'csvs/SanAntonio_Monthly_Hom_Cnts.csv', stringsAsFactors = F)
+glimpse( sadf )
+```
+
+Now, running the file through `format_monthly_hom_cnts` will try to automatically decide which city and state this file is referring to (using the corresponding columns within the csv file, if they exist). It then merges this data with the population data for that city. 
+```{r SanAntonio.Clean, include = T}
+sadf.clean <- format_monthly_hom_cnts( 'csvs/SanAntonio_Monthly_Hom_Cnts.csv' )
+glimpse( sadf.clean )
+```
+One thing you'll notice is that there are more observations in the `sadf` data than `sadf.clean`. The reason for this is that the last observation (row) in `sadf` as an `NA` value for the homicide counts, and is hence unused. 
+```{r sadf NA, include = T}
+sadf[ is.na( sadf$Count ), ]
+```
+#### Explicitly specifying which columns to use
+The default behavior of `format_monthly_hom_cnts` looks for columns titled (ignoring case and spaces) `City`, `State`, `Month`, `Year`, and `Count` for the city name, state abreviation, month, year, and homicide counts, respectively. However, if these are not present or have different names, we can explicitly tell the function which columns to use with `state_col`, `place_col`, `year_col`, `month_col`, and `hmcnt_col` arguments. 
+```{r SanAntonion.Explicit, include = T}
+sadf.explicit <- format_monthly_hom_cnts( 'csvs/SanAntonio_Monthly_Hom_Cnts.csv', 
+                                          state_col = 'State',
+                                          place_col = 'City',
+                                          year_col = 'Year',
+                                          month_col = 'Month',
+                                          hmcnt_col = 'Count' )
+glimpse( sadf.explicit )
+```
+
+### Example with Baltimore, MD
+Looking at the original data:
+```{r Baltimore.Unclean, include = T}
+bdf <- read.csv('csvs/Baltimore_BPD_Homicide_Data_2012-2017_homicide_counts.csv', stringsAsFactors = F)
+glimpse(bdf)
+```
+We see that there are several rows per month, counting the homicides by homicide type. The function `format_monthly_hom_cnts` by defualts will sum these together over the month to produce the aggreated counts. 
+```{r Baltimore.Clean, include = T}
+bdf.clean <- format_monthly_hom_cnts( 'csvs/Baltimore_BPD_Homicide_Data_2012-2017_homicide_counts.csv' )
+glimpse(bdf.clean)
+```
+
+#### Specifying which homicide types to include 
+Now, suppose that we only wanted to inlude homicides of types `FIREARM` and `KNIFE`. This can be acheived by passing `hom_type_col` and `use_hom_types` arguments, which give the name of the column which specifies homicide types and a (list of) the homicide types to include, respectively. 
+```{r Baltimore.FIREARM, inluce = T}
+bdf.firearm <- format_monthly_hom_cnts( 'csvs/Baltimore_BPD_Homicide_Data_2012-2017_homicide_counts.csv', 
+                                        hom_type_col = 'homicide_type',
+                                        use_hom_types = c('FIREARM','KNIFE') )
+glimpse( bdf.firearm )
+```
+### Example with Tulsa, OK
+Looking at the original data:
+```{r Tulsa.Unclean, include = T}
+tdf <- read.csv('csvs/City_of_Tulsa_Homicide_Monthly.csv', stringsAsFactors = F)
+glimpse( tdf )
+```
+We see that the city name, nor state abreviation is included. Also, the month column is the character names of the months rather than the integer representations. We can handle the city and state name issue by passing `state_abr` and `place_name` arguments into the `format_monthly_hom_cnts`; this function will will automatically take month names or standard 3 letter abbreviations and convert them to integer format. 
+```{r Tulsa.Clean, include = T}
+tdf.clean <- format_monthly_hom_cnts( 'csvs/City_of_Tulsa_Homicide_Monthly.csv', 
+                                      state_abr = 'OK', 
+                                      place_name = 'Tulsa' )
+glimpse(tdf.clean)
+```
+**Note**: Currently, `format_monthly_hom_cnts` expects to be passed the 2-letter, USPS state abreviation to pull out the correct population data. So, if the original data is missing this in a `State` column, or the column includes the full state name, make sure to pass the function the correct argument for `state_abr`.
