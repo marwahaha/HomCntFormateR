@@ -43,7 +43,7 @@ month_to_int_converter <- function( x ){
      suppressWarnings( int_x <- as.integer(x) ) 
      if( int_x %in% int_mnths ) return( int_x )
      is_substr <- function( sub_str, sup_str ){
-          length( grep(tolower(sub_str), tolower(sup_str)) ) > 0
+          grepl(tolower(sub_str), tolower(sup_str))
      }
      if( is_substr('jan', x) ){
           return( 1L )
