@@ -182,3 +182,29 @@ format_monthly_hom_cnts <- function(
      rownames(ret_df) <- NULL
      return( ret_df )
 }
+
+save_monthly_df <- function( df, output_dir = './' ){
+     # Create the place name for the filename
+     pl_nm <- df$place_name[1]
+     spcs <- gregexpr( pattern = ' ', text = pl_nm )[[1]]
+     pl_nm <- gsub(' +', '', substr( pl_nm, start = 1, stop = spcs[length(spcs)] ))
+     # get the state abr for the filename
+     st_abr <- df$state_abr[1]
+     # the suffix of the filename
+     suffix <- 'Homicide_Counts.csv'
+     # combine these into the finished filename
+     output_filename <- paste( c(pl_nm, st_abr, suffix), collapse = "_" )
+     # add the output_dir info
+     output_fp <- paste( c(output_dir, output_filename), collapse = "/" )
+     cat( sprintf("Output filepath to be saved: %s\n", output_fp) )
+     write.csv( x = df, file = output_fp, row.names = F )
+     cat( 'File saved.\n')
+     
+     cat( 'Compare the two data sources:\n')
+     cat( "---------ORIGINAL---------\n" )
+     dplyr::glimpse( df )
+     cat( "---------SAVED---------\n" )
+     dplyr::glimpse( read.csv( output_fp, stringsAsFactors = F ) )
+     cat( "----------------------------\n")
+     cat("Done.\n")
+}
