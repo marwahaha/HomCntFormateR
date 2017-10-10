@@ -170,6 +170,8 @@ format_monthly_hom_cnts <- function(
      cnts_df <- cnts_df[ !is.na(cnts_df$homicide_count), ]
      # make sure the months are integers
      cnts_df$month <- sapply( as.character(cnts_df$month), FUN = month_to_int_converter )
+     # make sure the years are integers
+     cnts_df$year <- as.integer( gsub("[^0-9]","",cnts_df$year) )
      # group_by year and month and sum up counts (in case they were separated by homicide type)
      cnts_df <- cnts_df %>% group_by( year, month ) %>% dplyr::summarise( homicide_count = sum(homicide_count) )
      # join this with population data frame
