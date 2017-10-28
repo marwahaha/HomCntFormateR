@@ -1,9 +1,10 @@
-PLACE_POPULATION2010_CSV_FP <- 'http://cims.nyu.edu/~tlaetsch/2010_interp_pop.csv'
-PLACE_POPULATION2010_RDATA_FP <- 'PLACE_POPULATION2010_DF.rds'
+PLACE_POPULATION2010_RDS_URL <- 'http://cims.nyu.edu/~tlaetsch/PLACE_POPULATION2010_DF.rds'
+PLACE_POPULATION2010_RDS_FP <- NULL
 
 PLACE_POPULATION2010 <- function( var_name = 'PLACE_POPULATION2010_DF',
-                                  rds_fp = PLACE_POPULATION2010_RDATA_FP,
-                                  csv_fp = PLACE_POPULATION2010_CSV_FP,
+                                  rds_url = PLACE_POPULATION2010_RDS_URL,
+                                  rds_fp = PLACE_POPULATION2010_RDS_FP,
+                                  #csv_fp = PLACE_POPULATION2010_CSV_FP,
                                   use_existing = T,
                                   rewrite_rds = F ){
      
@@ -16,24 +17,25 @@ PLACE_POPULATION2010 <- function( var_name = 'PLACE_POPULATION2010_DF',
                }
           }
      }
-     if( !is.null(pop_df) ){
-          if( rewrite_rds | !file.exists(rds_fp) ){
-               saveRDS( object = pop_df, file = rds_fp )
-          }
-          return( pop_df )
-     } else {
-          if( use_existing & file.exists(rds_fp) ){
-               pop_df <- readRDS( file = rds_fp )
-               return( pop_df )
-          } else {
-               pop_df <- read.csv( file = csv_fp,
-                                   stringsAsFactors = F )
-               if( rewrite_rds | !file.exists(rds_fp) ){
-                    saveRDS( object = pop_df, file = rds_fp )
+     if( is.null(pop_df) ) {
+          if( use_existing & !is.null(rds_fp) ){
+               if( file.exists(rds_fp) ){
+                    pop_df <- readRDS( file = rds_fp )
+                    return( pop_df )
                }
-               return( pop_df )
+          } else {
+               if( !is.null( rds_fp ) & rewrite_rds ){
+                    download.file( url = PLACE_POPULATION2010_RDS_URL, destfile = rds_fp )
+                    pop_df <- readRDS( rds_fp )
+               } else {
+                    tmp <- tempfile()
+                    download.file( url = PLACE_POPULATION2010_RDS_URL, destfile = tmp )
+                    pop_df <- readRDS( tmp )
+                    unlink( tmp )
+               }
           }
      }
+     pop_df
 }
 
 PLACE_POPULATION2010_DF <- PLACE_POPULATION2010()
@@ -116,13 +118,14 @@ format_monthly_hom_cnts <- function(
                                                       'place_name',
                                                       'within_county',
                                                       'population_est',
-                                                      'homicide_count')
+                                                      'homicide_count'),
+                                        ...
                                    ){
      require( dplyr )
      
      
      # read in and clean the monthly counts file passed
-     cnts_df <- read.csv( counts_csv_fp, stringsAsFactors = F )
+     cnts_df <- read.csv( counts_csv_fp, stringsAsFactors = F, ... )
      # normalize the names of cnts_df for ease of finding the desired columns
      cnts_names <- sapply( names(cnts_df), FUN = function( nm ){ tolower( gsub(" +", "", nm) ) } )
      names( cnts_df ) <- cnts_names

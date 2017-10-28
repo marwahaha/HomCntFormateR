@@ -1,0 +1,53 @@
+---
+title: "Examples"
+author: "Thomas Laetsch"
+date: "October 11, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+## Two Extra Examples
+
+Although we have already included three examples in the README file, here we provide two more special case examples and how to deal with them. 
+
+```{r source }
+source( 'MonthlyHomCnts.R' )
+```
+
+### Example 1: xlsx file
+
+We start with the file `Minneapolis_homicide_counts.xlsx` in the `input_files` directory, which is in xlsx format. Such a file cannot be immediately read into the function `format_monthly_hom_cnts` and first needs to be converted to csv. With the package `xlsx` installed, converting to a csv is quite simple.
+
+```{r convert_xlsx_to_csv}
+library(xlsx)
+xlsx_fp <- 'input_files/Minneapolis_homicide_counts.xlsx'
+xlsx_df <- read.xlsx( xlsx_fp, sheetIndex = 1 )
+head( xlsx_df )
+```
+Note that we set `sheetIndex = 1`, which is because the data was on the first sheet of the Excel notebook (if this is not the case, choose the appropriate sheet index). Now, save as csv:
+```{r save_xlsx_df_as_csv }
+csv_fp <- 'input_files/Minneapolis_hom_cnts.csv'
+write.csv( x = xlsx_df, file = csv_fp, row.names = F )
+```
+where we set `row.names = F` since we don't need nor want the output csv to contain a column of row indices. From here, we're ready to move on to formatting as before. 
+```{r xlsx_to_csv_format }
+df <- format_monthly_hom_cnts( csv_fp )
+save_monthly_df( df, output_dir = 'output_files/' )
+```
+
+### Example 2: Deliminated other than csv
+
+The next example will use the file `HPD_Monthly_Homicide_Count.csv` in the `input_files` directory. Although labelled as `csv`, the errors thrown trying to run it through `format_monthly_hom_cnts` inspired us to look at the original file.
+```{r look_at_HPD}
+tsv_fp <- 'input_files/HPD_Monthly_Homicide_Count.csv'
+HPD_df <- read.csv( tsv_fp, stringsAsFactors = F )
+head(HPD_df)
+```
+From this, we see that it was read in with only one long, period-concatenated column label, and that the entry has the information partitioned by `\t`, suggesting these entries were tab delimited. The function `format_monthly_hom_cnts` can handle this, but must be told explicitly that the separation is tab, rather than comma; we do this by adding the argument `sep='\t'`. Before jumping into this, we also notice that neither the city name nor the state are included, so we need to send these arguments as well. 
+```{r tab_sep_HPD}
+df <- format_monthly_hom_cnts( tsv_fp, place_name = 'Houston', state_abr = 'TX', sep = '\t' )
+save_monthly_df( df, output_dir = 'output_files/' )
+```
