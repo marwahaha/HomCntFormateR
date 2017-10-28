@@ -99,7 +99,7 @@ place_pop_extractor <- function( state_abr, place_name ){
 }
 
 format_monthly_hom_cnts <- function( 
-                                        counts_csv_fp,
+                                        counts_fp_or_df,
                                         state_col = 'state',
                                         place_col = 'city',
                                         year_col = 'year',
@@ -125,7 +125,11 @@ format_monthly_hom_cnts <- function(
      
      
      # read in and clean the monthly counts file passed
-     cnts_df <- read.csv( counts_csv_fp, stringsAsFactors = F, ... )
+     if( class(counts_fp_or_df) == 'data.frame' ){
+          cnts_df <- counts_fp_or_df
+     } else {
+          cnts_df <- read.csv( counts_csv_fp, stringsAsFactors = F, ... )
+     }
      # normalize the names of cnts_df for ease of finding the desired columns
      cnts_names <- sapply( names(cnts_df), FUN = function( nm ){ tolower( gsub(" +", "", nm) ) } )
      names( cnts_df ) <- cnts_names
