@@ -37,7 +37,7 @@ One thing you'll notice is that there are more observations in the `sadf` data t
 sadf[ is.na( sadf$Count ), ]
 ```
 #### Explicitly specifying which columns to use
-The default behavior of `format_monthly_hom_cnts` looks for columns titled (ignoring case and spaces) `City`, `State`, `Month`, `Year`, and `Count` for the city name, state abreviation, month, year, and homicide counts, respectively. However, if these are not present or have different names, we can explicitly tell the function which columns to use with `state_col`, `place_col`, `year_col`, `month_col`, and `hmcnt_col` arguments. 
+The default behavior of `format_monthly_hom_cnts` looks for columns titled (ignoring case and spaces) `City`, `State`, `Month`, `Year`, and `Count` for the city name, state abbreviation, month, year, and homicide counts, respectively. However, if these are not present or have different names, we can explicitly tell the function which columns to use with `state_col`, `place_col`, `year_col`, `month_col`, and `hmcnt_col` arguments. 
 ```{r SanAntonion.Explicit, include = T}
 sadf.explicit <- format_monthly_hom_cnts( 'csvs/SanAntonio_Monthly_Hom_Cnts.csv', 
                                           state_col = 'State',
@@ -74,11 +74,11 @@ Looking at the original data:
 tdf <- read.csv('csvs/City_of_Tulsa_Homicide_Monthly.csv', stringsAsFactors = F)
 glimpse( tdf )
 ```
-We see that the city name, nor state abreviation is included. Also, the month column is the character names of the months rather than the integer representations. We can handle the city and state name issue by passing `state_abr` and `place_name` arguments into the `format_monthly_hom_cnts`; `format_monthly_hom_cnts` will automatically take month names or standard 3 letter abbreviations and convert them to integer format. 
+We see that the city name, nor state abbreviation is included. Also, the month column is the character names of the months rather than the integer representations. We can handle the city and state name issue by passing `state_abr` and `place_name` arguments into the `format_monthly_hom_cnts`; `format_monthly_hom_cnts` will automatically take month names or standard 3 letter abbreviations and convert them to integer format. 
 ```{r Tulsa.Clean, include = T}
 tdf.clean <- format_monthly_hom_cnts( 'csvs/City_of_Tulsa_Homicide_Monthly.csv', 
                                       state_abr = 'OK', 
                                       place_name = 'Tulsa' )
 glimpse(tdf.clean)
 ```
-**Note**: Currently, `format_monthly_hom_cnts` expects to be passed the 2-letter, USPS state abreviation to pull out the correct population data. So, if the original data is missing this in a `State` column, or the column includes the full state name, make sure to pass the function the correct argument for `state_abr`.
+**Note**: Currently, `format_monthly_hom_cnts` expects to be passed the 2-letter, USPS state abbreviation to pull out the correct population data. So, if the original data is missing this in a `State` column, or the column includes the full state name, make sure to pass the function the correct argument for `state_abr`.
